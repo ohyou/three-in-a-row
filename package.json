@@ -1,0 +1,36 @@
+{
+  "name": "three-in-a-row",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "clean": "rm -rf ./build",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohyou/three-in-a-row.git"
+  },
+  "author": "Nikita Zhuravlev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ohyou/three-in-a-row/issues"
+  },
+  "homepage": "https://github.com/ohyou/three-in-a-row#readme",
+  "dependencies": {
+    "pixi.js": "^4.8.2"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-es2016": "^6.24.1",
+    "copy-webpack-plugin": "^4.5.2",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.17.2",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.8",
+    "webpack-merge": "^4.1.4"
+  }
+}
