@@ -28,7 +28,7 @@
 	},
 	
 	plugins: [
-		new HtmlWebpackPlugin(),
+		new HtmlWebpackPlugin({ template: './index.html' }),
 		new CopyWebpackPlugin([{ from: 'assets', to: 'assets' }])
 	]
  };
