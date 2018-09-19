@@ -7,7 +7,11 @@
     "start": "webpack-dev-server --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
     "clean": "rm -rf ./build",
-    "rebuild": "npm run clean && npm run build"
+    "rebuild": "npm run clean && npm run build",
+    "compile": "babel --presets env -d lib/ js/",
+    "test": "mocha test/*.js --require babel-register",
+    "clean-lib": "rm -rf ./lib",
+    "clean-test": "npm run clean-lib && npm run compile && npm run test"
   },
   "repository": {
     "type": "git",
@@ -20,14 +24,20 @@
   },
   "homepage": "https://github.com/ohyou/three-in-a-row#readme",
   "dependencies": {
-    "pixi.js": "^4.8.2"
+    "babel-polyfill": "^6.26.0",
+    "pixi.js": "4.8.2"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.1.0",
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
-    "babel-preset-es2016": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
     "copy-webpack-plugin": "^4.5.2",
     "html-webpack-plugin": "^3.2.0",
+    "mocha": "^5.2.0",
     "webpack": "^4.17.2",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.8",

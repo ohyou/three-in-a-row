@@ -10,7 +10,8 @@ export default {
 
 	model: {
 		width: 10,
-		height: 10
+		height: 10,
+		colors: ['red', 'green', 'blue', 'purple', 'yellow']
 	},
 
 	assets: { // Можно вынести в отдельный манифест
