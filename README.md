@@ -10,6 +10,6 @@
 
 Запуск тестов: `npm run test` или `npm run clean-test`
 
-Компиляция проекта для тестирования: `npm run compile` (собирается в `./lib`)
+СБорка проекта для тестирования: `npm run compile` (собирается в `./lib`)
 
 Чистка проекта: `npm run clean` (билд), `npm run clean-lib` (тест сурсы) и `npm run full-clean`
