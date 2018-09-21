@@ -22,4 +22,8 @@ export class View extends PIXI.Application {
 		}
 		this.loader.load();
 	}
+
+	sceneUpdate(type) {
+		console.log('scene update', type);
+	}
 }
