@@ -5,7 +5,7 @@ export class View extends PIXI.Application {
 	constructor(config, assets) {
 		super(config.application);
 
-		this.scene = new Scene();
+		this.scene = new Scene(config.application);
 		this.stage.addChild(this.scene);
 		this.container = document.querySelector(`#${config.embed}`);
 

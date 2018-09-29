@@ -11,13 +11,20 @@ export default {
 	model: {
 		width: 10,
 		height: 10,
-		colors: ['red', 'green', 'blue', 'purple', 'yellow']
+		colors: ['red', 'green', 'blue', 'purple', 'yellow'],
+		statuses: { alive: Symbol('status_alive'), dead: Symbol('status_dead') }
 	},
 
 	assets: { // Можно вынести в отдельный манифест
 		path: 'assets/',
-		list: {
-			logo: 'github.png'
-		}
+		list: [
+			'github.png',
+			'playfield_line.png',
+			'playfield_red.png',
+			'playfield_green.png',
+			'playfield_blue.png',
+			'playfield_purple.png',
+			'playfield_yellow.png'
+		]
 	}
 };

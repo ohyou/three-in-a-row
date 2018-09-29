@@ -1,27 +1,61 @@
 import {generateColor, shiftLeft, shiftRight} from '../util.js';
-//import * as EventEmitter from 'events';
 const EventEmitter = require('events');
 
 class Cell { // data structure
-	constructor(color) {
+	constructor(color, status) {
 		this.color = color;
+		this.status = status;
 	}
 }
 
 export class Playfield extends EventEmitter {
-	constructor(width, height, colors) {
+	constructor(width, height, colors, statuses) {
 		super();
 
 		this.game_width = width;
 		this.game_height = height;
 		this.game_colors = colors;
+		this.game_statuses = statuses;
 
 		this.cells = [];
 		for (let i = 0; i < (width * height); ++i) {
-			this.cells.push(new Cell(generateColor(colors)));
+			this.cells.push(new Cell(generateColor(colors), statuses.alive));
 		}
 
-		this.moveColumnDown(2, 2);
+		this.debug();
+	}
+
+	isWinningRow(row) {
+		let last_status = cell[0].status;
+		for (const cell of row) {
+			if (last_status !== cell.status) return false;
+			last_status = cell.status;
+		}
+		return true;
+	}
+
+	killRow(row) {
+		for (const cell of row) {
+			cell.status = this.game_statuses.dead;
+		}
+	}
+
+	killWinners() {
+		// Rows
+		for (let i = 0; i < this.game_height; ++i) {
+			let row = this.getRow(i);
+			if (this.isWinningRow(row)) {
+				this.killRow(row);
+			}
+		}
+
+		// Columns
+		for (let i = 0; i < this.game_width; ++i) {
+			let column = this.getColumn(i);
+			if (this.isWinningRow(column)) {
+				this.killRow(column);
+			}
+		}
 	}
 
 	getRow(num) { // autotest

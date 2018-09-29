@@ -7,7 +7,7 @@ export class GameModel extends EventEmitter {
 		super();
 
 		this.config = config;
-		this.playfield = new Playfield(config.width, config.height, config.colors);
+		this.playfield = new Playfield(config.width, config.height, config.colors, config.statuses);
 		this.playfield.on('update', this.gameUpdate.bind(this));
 	}
 
