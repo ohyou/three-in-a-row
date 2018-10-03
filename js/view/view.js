@@ -3,11 +3,11 @@ import {Scene} from './scene.js';
 
 export class View extends PIXI.Application {
 	constructor(config, assets) {
-		super(config.application);
+		super(config.view.application);
 
-		this.scene = new Scene(config.application);
+		this.scene = new Scene(config);
 		this.stage.addChild(this.scene);
-		this.container = document.querySelector(`#${config.embed}`);
+		this.container = document.querySelector(`#${config.view.embed}`);
 
 		this.loader.onComplete.add(() => {
 			this.container.appendChild(this.view);
@@ -23,7 +23,8 @@ export class View extends PIXI.Application {
 		this.loader.load();
 	}
 
-	sceneUpdate(type) {
-		console.log('scene update', type);
+	sceneUpdate(type, state) {
+		console.log('scene update', type, state);
+		this.scene.updateState(type, state);
 	}
 }
