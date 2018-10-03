@@ -30,7 +30,6 @@ export class Scene extends PIXI.Container {
 	}
 
 	updateState(type, state) {
-		console.log("aaaaa", state);
 		if (type === 'turn') { // TODO: globals?
 			this.playfield.updateItems(state.playfield);
 		}

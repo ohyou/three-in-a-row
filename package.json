@@ -25,6 +25,7 @@
   "homepage": "https://github.com/ohyou/three-in-a-row#readme",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "gsap": "^2.0.2",
     "pixi.js": "4.8.2"
   },
   "devDependencies": {
