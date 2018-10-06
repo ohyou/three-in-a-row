@@ -17,3 +17,12 @@ class Game {
 }
 
 new Game(); // TODO?
+
+/*
+	TODO:
+		- before the swap, check it in model
+		- after the animation check the playfield
+		- implement killing
+		- implement respawning
+		- implement score
+*/

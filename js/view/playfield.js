@@ -1,82 +1,112 @@
 import 'pixi.js';
 import {getTexture} from '../util.js';
 import {TweenLite} from 'gsap/TweenLite';
+import {TimelineLite} from 'gsap/TimelineLite';
 
 const DIRECTION = {
-	HORIZONTAL: Symbol('dragging_up'),
-	VERTICAL: Symbol('dragging_down'),
+	LEFT: Symbol('dragging_left'),
+	UP: Symbol('dragging_up'),
+	RIGHT: Symbol('dragging_right'),
+	DOWN: Symbol('dragging_down'),
 	NONE: Symbol('dragging_false')
 }
 
-class Column extends PIXI.Container {
-	constructor(resources, max_height) {
+class Cell extends PIXI.Container {
+	constructor(resources, color) {
 		super();
 
 		this.resources = resources;
-		this.items = [];
-		this.max_height = max_height;
+
+		this.facade = new PIXI.Sprite(PIXI.Texture.EMPTY);
+		this.addChild(this.facade);
+		this.setColor('red'); // default
+
+		this.neighbors = {
+			left: null,
+			up: null,
+			right: null,
+			down: null
+		};
 
 		this.interactive = true;
+		this.animation = new TimelineLite();
 		this.dragging = false;
+		this.dragging_locked = false;
 		this.dragging_direction = DIRECTION.NONE;
-		this.dragging_data = new PIXI.Point(0, 0);
+		this.dragging_distance = new PIXI.Point(0, 0);
 		this.on("mousedown", this.dragStart.bind(this));
 		this.on("mouseup", this.dragStop.bind(this));
 		this.on("mouseupoutside", this.dragStop.bind(this));
 		this.on("mousemove", this.drag.bind(this));
 	}
 
-	setOffset(x, y) {
-		this.offset = new PIXI.Point(x, y);
-		this.position.set(x, y);
+	setColor(color) {
+		this.facade.texture = getTexture(this.resources, `playfield_${color}.png`);
 	}
 
-	addItem(color) {
-		let new_item = new PIXI.Sprite(getTexture(this.resources, `playfield_${color}.png`))
-		this.items.push(new_item);
-		this.addChild(new_item);
-		this.repositionItems();
-	}
-
-	removeItem(index, amount = 1) {
-		let removed_items = this.items.splice(index, amount);
-		for (const item of removed_items) {
-			this.removeChild(item);
+	getNeighbor(direction) {
+		switch(direction) {
+			case DIRECTION.LEFT: return this.neighbors.left;
+			case DIRECTION.UP: return this.neighbors.up;
+			case DIRECTION.RIGHT: return this.neighbors.right;
+			case DIRECTION.DOWN: return this.neighbors.down;
+			default: return null;
 		}
-		this.repositionItems();
 	}
 
-	removeAllItems() {
-		this.removeItem(0, this.items.length);
+	animateSwap(destination) {
+		this.dragging_locked = true;
+		this.animation.to(this, 0.35, Object.assign({}, destination, {onComplete: this.swapFinish.bind(this)}), 'swap');
 	}
 
-	repositionItems() {
-		for (let i = 0; i < this.items.length; ++i) {
-			this.items[i].position.set(0, this.max_height - ((i + 1) * this.items[i].height));
+	swapWith(direction) {
+		this.dragStop();
+		let neighbor = this.getNeighbor(direction);
+		let destinations = {};
+		if (direction === DIRECTION.LEFT || direction === DIRECTION.RIGHT) {
+			// workaround for x/y
+			destinations.self = {x: neighbor.x};
+			destinations.neighbor = {x: this.x};
+		} else if (direction === DIRECTION.UP || direction === DIRECTION.DOWN) {
+			destinations.self = {y: neighbor.y};
+			destinations.neighbor = {y: this.y};
 		}
+
+		this.animateSwap(destinations.self);
+		neighbor.animateSwap(destinations.neighbor);
+	}
+
+	swapFinish() {
+		this.dragging_locked = false;
+		this.emit("swapped");
 	}
 
 	dragStart(e) {
 		this.dragging = true;
-		this.dragging_data = e.data;
 	}
 
 	dragStop() {
 		this.dragging = false;
-		this.dragging_data = new PIXI.Point(0, 0);
 		this.dragging_direction = DIRECTION.NONE;
-		this.toClosestRow();
 	}
 
 	drag(e) {
-		if (this.dragging) {
-			switch(this.dragging_direction) {
-				case DIRECTION.NONE:
-					this.dragging_direction = (e.data.originalEvent.movementX > e.data.originalEvent.movementY) ? DIRECTION.NONE : DIRECTION.VERTICAL;
-				case DIRECTION.VERTICAL:
-					this.y += e.data.originalEvent.movementY;
-					break;
+		if (this.dragging && !this.dragging_locked) {
+			let movement = {
+				x: e.data.originalEvent.movementX,
+				y: e.data.originalEvent.movementY
 			}
+
+			if (this.dragging_direction === DIRECTION.NONE) {
+				if (Math.abs(movement.x) >= Math.abs(movement.y)) {
+					this.dragging_direction = movement.x >= 0 ? DIRECTION.RIGHT : DIRECTION.LEFT;
+				} else {
+					this.dragging_direction = movement.y >= 0 ? DIRECTION.DOWN : DIRECTION.UP;
+				}
+				
+			}
+
+			this.swapWith(this.dragging_direction);
 		}
 	}
 
@@ -124,15 +154,26 @@ export class Playfield extends PIXI.Container {
 
 		this.addChild(this.grid);
 
-		this.grid.columns = [];
-		for (let i = 0; i < this.grid_width; ++i) {
-			let column = new Column(this.resources, this.grid.height - thickness * 2);
-			column.setOffset(
-				thickness + i * ((this.grid.width - thickness * 2) / this.grid_width),
-				thickness
-			);
-			this.grid.columns.push(column);
-			this.grid.addChild(column);
+		this.grid.cells = [];
+		for (let i = 0; i < this.grid_width * this.grid_height; ++i) {
+			let cell = new Cell(this.resources, 'red');
+			cell.position.set(
+				(i % this.grid_height) * cell.width + thickness,
+				Math.floor(i / this.grid_width) * cell.height + thickness);
+			cell.on("swapped", this.cellSwapped.bind(this));
+			this.grid.cells.push(cell);
+			this.grid.addChild(cell);
+		}
+
+		// Assigning neighbors
+		for (let i = 0; i < this.grid.cells.length; ++i) {
+			let cell = this.grid.cells[i];
+			let column = i % this.grid_width;
+			let row = Math.floor(i / this.grid_height);
+			cell.neighbors.left = column > 0 ? this.grid.cells[i - 1] : null;
+			cell.neighbors.right = column < (this.grid_width - 1) ? this.grid.cells[i + 1] : null;
+			cell.neighbors.up = row > 0 ? this.grid.cells[i - this.grid_width] : null;
+			cell.neighbors.down = row < (this.grid_height - 1) ? this.grid.cells[i + this.grid_width] : null;
 		}
 
 		this.mask = new PIXI.Graphics();
@@ -144,28 +185,17 @@ export class Playfield extends PIXI.Container {
 		this.addChild(this.mask);
 	}
 
-	spawn(color, column) {
-		this.grid.columns[column].addItem(color);
+	spawn(color, index) {
+		this.grid.cells[index].setColor(color);
 	}
 
-	kill(column, row) {
-		this.grid.columns[column].removeItem(row);
-	}
-
-	killColumn(column) {
-		this.grid.columns[column].removeAllItems();
-	}
-
-	killEverything() {
-		for (const column of this.grid.columns) {
-			column.removeAllItems();
-		}
+	cellSwapped() {
+		this.emit('turn');
 	}
 
 	updateItems(new_items) {
-		this.killEverything();
 		for (let i = 0; i < new_items.length; ++i) {
-			this.spawn(new_items[i].color, i % this.grid_width);
+			this.spawn(new_items[i].color, i);
 		}
 	}
 }

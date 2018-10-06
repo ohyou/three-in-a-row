@@ -25,6 +25,7 @@ export class Scene extends PIXI.Container {
 			(this.scene_width / 2) - (this.playfield.width / 2), 
 			(this.scene_height / 2) - (this.playfield.height / 2)
 		);
+		this.playfield.on('turn', () => this.emit('turn'));
 		this.addChild(this.playfield);
 		console.log(this.resources);
 	}
